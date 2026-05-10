@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AquaGrow Integrated 3D v4 - NITC MED</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#151a1e;color:#d8e8f0;font-family:'Segoe UI',sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+#topbar{height:46px;background:#1c2229;border-bottom:1px solid rgba(96,212,250,.2);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0}
+#topbar h1{font-size:14px;font-weight:600;color:#60d4fa}
+.sub{font-size:11px;color:#364d5a;margin-left:10px}
+#clock{font-family:monospace;font-size:12px;color:#60d4fa;background:rgba(96,212,250,.07);border:1px solid rgba(96,212,250,.2);padding:3px 12px;border-radius:5px}
+#main{display:flex;flex:1;overflow:hidden}
+#vp{flex:1;position:relative;overflow:hidden}
+#c3d{display:block;width:100%;height:100%}
+.lbl{position:absolute;font-family:monospace;font-size:10px;background:rgba(21,26,30,.96);border:1px solid rgba(96,212,250,.3);padding:3px 8px;border-radius:4px;pointer-events:none;white-space:nowrap;transition:opacity .3s;color:#60d4fa}
+.lbl.w{color:#fbbf24;border-color:rgba(251,191,36,.4)}
+.lbl.b{color:#60a5fa;border-color:rgba(96,165,250,.4)}
+.lbl.r{color:#f87171;border-color:rgba(248,113,113,.4)}
+#hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:10px;color:#364d5a;background:rgba(21,26,30,.82);border:1px solid rgba(96,212,250,.15);padding:4px 12px;border-radius:16px;pointer-events:none}
+#panel{width:300px;background:#1c2229;border-left:1px solid rgba(96,212,250,.2);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+#ptabs{display:flex;border-bottom:1px solid rgba(96,212,250,.2);flex-shrink:0}
+.ptab{flex:1;padding:8px 0;font-size:10px;font-weight:500;text-align:center;cursor:pointer;color:#364d5a;border:none;background:transparent;font-family:'Segoe UI',sans-serif;transition:all .2s;letter-spacing:.04em;text-transform:uppercase}
+.ptab.on{color:#60d4fa;border-bottom:2px solid #60d4fa}
+#pcontent{flex:1;overflow-y:auto;padding:10px}
+#pcontent::-webkit-scrollbar{width:3px}
+#pcontent::-webkit-scrollbar-thumb{background:rgba(96,212,250,.2)}
+.pane{display:none}.pane.on{display:block}
+.psec{font-size:9px;font-weight:700;color:#364d5a;text-transform:uppercase;letter-spacing:.12em;margin:12px 0 6px;border-bottom:1px solid rgba(96,212,250,.12);padding-bottom:4px}
+.sc{background:#212830;border:1px solid rgba(96,212,250,.18);border-radius:8px;padding:9px 11px;margin-bottom:7px}
+.slabel{font-size:9px;font-weight:600;color:#364d5a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.sval{font-family:monospace;font-size:20px;font-weight:500;color:#60d4fa;line-height:1}
+.sval.w{color:#fbbf24}.sval.d{color:#f87171}
+.sunit{font-size:10px;color:#364d5a;margin-left:2px}
+.sbar{height:3px;background:rgba(255,255,255,.05);border-radius:2px;margin-top:6px;overflow:hidden}
+.sf{height:100%;border-radius:2px;background:#60d4fa;transition:width .5s,background .4s}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px}
+.mbox{background:#212830;border:1px solid rgba(96,212,250,.18);border-radius:7px;padding:8px 9px}
+.mbox .ml{font-size:9px;color:#364d5a;text-transform:uppercase;margin-bottom:3px}
+.mbox .mv{font-family:monospace;font-size:15px;font-weight:500;color:#06b6d4}
+.colbtn{display:flex;align-items:center;gap:9px;width:100%;padding:9px 12px;margin-bottom:6px;background:#212830;border:2px solid rgba(96,212,250,.15);border-radius:9px;color:#d8e8f0;font-family:'Segoe UI',sans-serif;font-size:12px;cursor:pointer;text-align:left;transition:all .2s}
+.colbtn:hover{background:rgba(96,212,250,.06)}
+.colbtn.on{background:rgba(96,212,250,.1);border-color:var(--cc)}
+.colbtn .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.2)}
+.colbtn .cn{font-weight:600;color:var(--cc)}
+.colbtn .cs{font-size:9px;color:#364d5a;margin-top:1px}
+.ctog{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:#212830;border:1px solid rgba(96,212,250,.18);border-radius:8px;margin-bottom:6px;font-size:11px}
+.ctog .cl{color:#364d5a;font-size:10px;margin-top:2px}
+.tog{width:38px;height:20px;background:#1e2c38;border:1px solid rgba(96,212,250,.3);border-radius:10px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.tog.on{background:rgba(96,212,250,.25)}
+.tog::after{content:'';position:absolute;width:14px;height:14px;background:#2a3d4a;border-radius:50%;top:2px;left:2px;transition:all .2s}
+.tog.on::after{left:20px;background:#60d4fa}
+.tempbox{background:linear-gradient(135deg,#212830,#171c21);border:1px solid rgba(96,212,250,.25);border-radius:10px;padding:12px;margin-bottom:8px;text-align:center}
+.tempbox .tval{font-family:monospace;font-size:26px;font-weight:600;line-height:1}
+.tempbox .tlbl{font-size:10px;color:#364d5a;margin-top:3px}
+#botbar{height:42px;background:#1c2229;border-top:1px solid rgba(96,212,250,.2);display:flex;align-items:center;padding:0 12px;gap:7px;flex-shrink:0}
+.btn{padding:5px 13px;border-radius:5px;font-family:'Segoe UI',sans-serif;font-size:11px;font-weight:500;cursor:pointer;border:1px solid rgba(96,212,250,.22);background:#212830;color:#d8e8f0;transition:all .18s}
+.btn:hover{border-color:#60d4fa;color:#60d4fa}
+.btn.pri{background:rgba(96,212,250,.1);border-color:#60d4fa;color:#60d4fa}
+.btn.stop{background:rgba(248,113,113,.1);border-color:#f87171;color:#f87171}
+.sep{width:1px;height:16px;background:rgba(96,212,250,.15);margin:0 2px}
+#stmsg{font-size:10px;color:#364d5a;margin-left:auto;font-family:monospace}
+#spd-sl{width:68px;-webkit-appearance:none;height:3px;background:rgba(96,212,250,.18);border-radius:2px;outline:none}
+#spd-sl::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;background:#60d4fa;border-radius:50%;cursor:pointer}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <div style="display:flex;align-items:center">
+    <div style="width:28px;height:28px;background:linear-gradient(135deg,#60d4fa,#06b6d4);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;margin-right:9px">&#127807;</div>
+    <h1>AquaGrow 3D Simulation v4</h1>
+    <span class="sub">Grow Beds inside Polyhouse + Correct Pipe Routing &mdash; NITC MED</span>
+  </div>
+  <div id="clock"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#60d4fa;margin-right:5px;animation:blink 1.8s infinite"></span>Day <span id="daynum">0</span> &nbsp;<span id="hhmmss">06:00</span></div>
+</div>
+<div id="main">
+  <div id="vp">
+    <canvas id="c3d"></canvas>
+    <div class="lbl" id="L-poly">Polyhouse</div>
+    <div class="lbl" id="L-tank">Fish Tank 500L</div>
+    <div class="lbl" id="L-bio">Biofilter</div>
+    <div class="lbl" id="L-bedA">Grow Bed A  Microgreens+Basil</div>
+    <div class="lbl" id="L-bedB">Grow Bed B  Kangkong+Okra</div>
+    <div class="lbl w" id="L-evap">Evap Cooling Pad</div>
+    <div class="lbl w" id="L-fan">Exhaust Fan</div>
+    <div class="lbl b" id="L-iot">ESP32 + SD Logger</div>
+    <div class="lbl" id="L-pump">Water Pump</div>
+    <div class="lbl b" id="L-colpump">Colour Pump</div>
+    <div class="lbl" id="L-col">Colour Tanks</div>
+    <div id="hint">Drag to orbit | Scroll to zoom | Right-drag to pan</div>
+  </div>
+  <div id="panel">
+    <div id="ptabs">
+      <button class="ptab on" onclick="ST('sensors',this)">Sensors</button>
+      <button class="ptab" onclick="ST('colour',this)">Colour</button>
+      <button class="ptab" onclick="ST('cooling',this)">Cooling</button>
+      <button class="ptab" onclick="ST('data',this)">Data</button>
+    </div>
+    <div id="pcontent">
+      <div class="pane on" id="pane-sensors">
+        <div class="psec">Water quality</div>
+        <div class="sc"><div class="slabel">pH</div><span class="sval" id="sv-ph">7.00</span><span class="sunit">pH</span><div class="sbar"><div class="sf" id="sb-ph"></div></div></div>
+        <div class="sc"><div class="slabel">Water Temperature</div><span class="sval" id="sv-tmp">27.0</span><span class="sunit">C</span><div class="sbar"><div class="sf" id="sb-tmp"></div></div></div>
+        <div class="sc"><div class="slabel">Dissolved Oxygen</div><span class="sval" id="sv-do">7.0</span><span class="sunit">mg/L</span><div class="sbar"><div class="sf" id="sb-do"></div></div></div>
+        <div class="sc"><div class="slabel">EC / Nutrients</div><span class="sval" id="sv-ec">1.2</span><span class="sunit">mS/cm</span><div class="sbar"><div class="sf" id="sb-ec"></div></div></div>
+        <div class="sc"><div class="slabel">Ammonia NH4</div><span class="sval" id="sv-nh4">0.22</span><span class="sunit">ppm</span><div class="sbar"><div class="sf" id="sb-nh4"></div></div></div>
+        <div class="psec">Polyhouse environment</div>
+        <div class="sc"><div class="slabel">Air temp inside</div><span class="sval" id="sv-air">32</span><span class="sunit">C</span><div class="sbar"><div class="sf" id="sb-air"></div></div></div>
+        <div class="sc"><div class="slabel">Humidity</div><span class="sval" id="sv-hum">65</span><span class="sunit">% RH</span><div class="sbar"><div class="sf" id="sb-hum"></div></div></div>
+        <div class="sc"><div class="slabel">Light PAR</div><span class="sval" id="sv-lx">380</span><span class="sunit">umol/m2/s</span><div class="sbar"><div class="sf" id="sb-lx"></div></div></div>
+        <div class="psec">System controls</div>
+        <div class="ctog">
+          <div>
+            <div style="font-size:11px;color:#60d4fa;margin-bottom:1px">&#9654; Main Water Pump</div>
+            <div class="cl">Tank &#8594; Biofilter &#8594; Grow Beds &#8594; Tank</div>
+          </div>
+          <div class="tog on" id="pump-tog" onclick="togglePump()"></div>
+        </div>
+        <div class="psec">System status</div>
+        <div class="g2">
+          <div class="mbox"><div class="ml">Plant GI</div><div class="mv" id="mv-gi">0.97</div></div>
+          <div class="mbox"><div class="ml">Fish GI</div><div class="mv" id="mv-fgi">0.79</div></div>
+        </div>
+        <div class="psec">Per-bed growth</div>
+        <div class="g2">
+          <div class="mbox"><div class="ml">Basil (Bed A)</div><div class="mv" id="mv-basil" style="color:#4ade80;font-size:12px">Seedling</div></div>
+          <div class="mbox"><div class="ml">Microgreens</div><div class="mv" id="mv-mgst" style="font-size:11px;color:#4ade80">Sprouting</div></div>
+        </div>
+        <div class="g2">
+          <div class="mbox"><div class="ml">Kangkong (Bed B)</div><div class="mv" id="mv-kang" style="color:#60d4fa;font-size:12px">Seedling</div></div>
+          <div class="mbox"><div class="ml">Okra (Bed B)</div><div class="mv" id="mv-okra" style="color:#06b6d4;font-size:12px">Seedling</div></div>
+        </div>
+        <div class="g2">
+          <div class="mbox"><div class="ml">NH4 ppm</div><div class="mv" id="mv-nh4n" style="color:#f87171">0.22</div></div>
+          <div class="mbox"><div class="ml">NO3 ppm</div><div class="mv" id="mv-no3">40.0</div></div>
+        </div>
+      </div>
+      <div class="pane" id="pane-colour">
+        <div class="psec">Individual colour channel pumps</div>
+        <div style="font-size:9px;color:#364d5a;margin-bottom:8px;line-height:1.5">Each tank has its own pump, supply pipe and drain return. Toggle each independently.</div>
+        <div class="ctog" style="border-left:3px solid #3080e0">
+          <div>
+            <div style="font-size:11px;color:#60a5fa;margin-bottom:1px">Blue tank  400-500 nm</div>
+            <div class="cl">Leaf dev, vegetative growth, chlorophyll-a</div>
+          </div>
+          <div class="tog on" id="cp-tog-0" onclick="toggleColPump(0)"></div>
+        </div>
+        <div class="ctog" style="border-left:3px solid #20a050">
+          <div>
+            <div style="font-size:11px;color:#4ade80;margin-bottom:1px">Green tank  500-570 nm</div>
+            <div class="cl">Canopy penetration, uniform distribution</div>
+          </div>
+          <div class="tog on" id="cp-tog-1" onclick="toggleColPump(1)"></div>
+        </div>
+        <div class="ctog" style="border-left:3px solid #e04020">
+          <div>
+            <div style="font-size:11px;color:#f87171;margin-bottom:1px">Red tank  600-700 nm</div>
+            <div class="cl">Biomass gain, fastest growth, default</div>
+          </div>
+          <div class="tog on" id="cp-tog-2" onclick="toggleColPump(2)"></div>
+        </div>
+        <div class="ctog" style="border-left:3px solid #555">
+          <div>
+            <div style="font-size:11px;color:#aaa;margin-bottom:1px">Black tank  shade/cooling</div>
+            <div class="cl">80% solar block  use 11am-3pm peak heat</div>
+          </div>
+          <div class="tog" id="cp-tog-3" onclick="toggleColPump(3)"></div>
+        </div>
+        <div class="ctog" style="border-left:3px solid #40c0a0">
+          <div>
+            <div style="font-size:11px;color:#a0d0c0;margin-bottom:1px">Clear tank  full spectrum</div>
+            <div class="cl">Natural daylight, max photosynthesis</div>
+          </div>
+          <div class="tog on" id="cp-tog-4" onclick="toggleColPump(4)"></div>
+        </div>
+        <div class="psec">Active channels</div>
+        <div id="active-channels" style="font-size:11px;color:#60d4fa;font-family:monospace;background:#212830;border:1px solid rgba(96,212,250,.18);border-radius:7px;padding:8px;line-height:1.8"></div>
+        <div class="psec">Pipe colour legend</div>
+        <div class="sc" style="font-size:10px;line-height:1.85;color:#364d5a">
+          <span style="color:#4ab8d8">&#9632; Teal thick:</span> Fish tank to biofilter<br>
+          <span style="color:#60c8e0">&#9632; Green:</span> Biofilter to grow beds<br>
+          <span style="color:#4898b8">&#9632; Amber:</span> Grow beds return to tank<br>
+          <span style="color:#60c8e8">&#9632; Coloured thin:</span> Each tank supply pipe<br>
+          <span style="color:#666">&#9632; Faded thin:</span> Drain return per tank
+        </div>
+      </div>
+      <div class="pane" id="pane-cooling">
+        <div class="psec">Cooling controls</div>
+        <div class="ctog">
+          <div><div style="font-size:11px;color:#d8e8f0;margin-bottom:1px">Exhaust fan (roof ridge)</div><div class="cl">Hot air exits at top  est. -3C</div></div>
+          <div class="tog on" id="fan-tog" onclick="toggleFan()"></div>
+        </div>
+        <div class="ctog">
+          <div><div style="font-size:11px;color:#d8e8f0;margin-bottom:1px">Evaporative cooling pad</div><div class="cl">Wet cellulose at inlet  est. -5C</div></div>
+          <div class="tog on" id="evap-tog" onclick="toggleEvap()"></div>
+        </div>
+        <div class="ctog">
+          <div><div style="font-size:11px;color:#d8e8f0;margin-bottom:1px">Black channel (solar block)</div><div class="cl">80% light blocked  est. -7C</div></div>
+          <div class="tog" id="black-tog" onclick="setCol(SIM.colorCh===3?2:3)"></div>
+        </div>
+        <div class="ctog">
+          <div><div style="font-size:11px;color:#d8e8f0;margin-bottom:1px">LED supplemental lights</div><div class="cl">When natural light is low</div></div>
+          <div class="tog on" id="led-tog" onclick="toggleLED()"></div>
+        </div>
+        <div class="psec">Live temperature</div>
+        <div style="display:flex;gap:7px">
+          <div class="tempbox" style="flex:1"><div class="tval" id="tair-val" style="color:#f87171">32</div><div class="tlbl">Air inside (C)</div></div>
+          <div class="tempbox" style="flex:1"><div class="tval" id="twat-val" style="color:#60d4fa">27</div><div class="tlbl">Water (C)</div></div>
+        </div>
+        <div class="sc" style="font-size:10px;line-height:1.8;color:#364d5a">
+          All cooling ON:<br>
+          &nbsp; Fan: -3C &nbsp; Evap pad: -5C &nbsp; Black: -7C<br>
+          &nbsp; Combined: -15C vs no cooling<br>
+          Kerala 42C outside + all ON = ~27C inside
+        </div>
+        <div class="psec">Scenario presets</div>
+        <button class="btn" onclick="loadSC(0)" style="width:100%;margin-bottom:5px;font-size:10px;text-align:left">Monsoon morning - 30C, overcast, clear ch</button>
+        <button class="btn" onclick="loadSC(1)" style="width:100%;margin-bottom:5px;font-size:10px;text-align:left">Peak summer noon - 36C, black + all cooling</button>
+        <button class="btn" onclick="loadSC(2)" style="width:100%;font-size:10px;text-align:left">Optimal evening - 27C, blue channel, nominal</button>
+      </div>
+      <div class="pane" id="pane-data">
+        <div class="psec">SD card log (pull and open in Excel)</div>
+        <div class="sc" style="font-size:10px;line-height:1.6;color:#364d5a">ESP32 writes every 5 min to microSD.<br>Zero cloud. Zero subscription needed.</div>
+        <div class="g2">
+          <div class="mbox"><div class="ml">Rows saved</div><div class="mv" id="rows-n">0</div></div>
+          <div class="mbox"><div class="ml">File size</div><div class="mv" id="file-kb">0 KB</div></div>
+        </div>
+        <div class="psec">Live CSV preview</div>
+        <div id="logdiv" style="font-family:monospace;font-size:8px;color:#364d5a;line-height:1.5;background:#141a1f;border:1px solid rgba(96,212,250,.12);border-radius:6px;padding:7px;max-height:200px;overflow-y:auto"></div>
+        <div class="psec">Water temp</div>
+        <canvas id="tmpchart" width="276" height="60" style="width:100%;display:block;margin-top:4px"></canvas>
+        <div class="psec">Growth index</div>
+        <canvas id="gichart" width="276" height="50" style="width:100%;display:block;margin-top:4px"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="botbar">
+  <button class="btn pri" id="play-btn" onclick="togglePlay()"> &gt; Start</button>
+  <div class="sep"></div>
+  <span style="font-size:10px;color:#364d5a">Speed:</span>
+  <input type="range" id="spd-sl" min="1" max="12" value="4" oninput="SIM.spd=+this.value;document.getElementById('spd-v').textContent=this.value+'x'">
+  <span id="spd-v" style="font-family:monospace;font-size:10px;color:#60d4fa;min-width:24px">4x</span>
+  <div class="sep"></div>
+  <button class="btn" onclick="setView('iso')" style="font-size:10px">Iso</button>
+  <button class="btn" onclick="setView('top')" style="font-size:10px">Top</button>
+  <button class="btn" onclick="setView('front')" style="font-size:10px">Front</button>
+  <button class="btn" onclick="setView('inside')" style="font-size:10px">Inside</button>
+  <button class="btn" onclick="setView('tank')" style="font-size:10px">Fish Tank</button>
+  <button class="btn" onclick="resetSim()" style="font-size:10px">Reset</button>
+  <div id="stmsg">Ready</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ================================================================
+// MATH MODELS  (from aquaponics_model.py)
+// ================================================================
+function bell(v,lo,hi,sf){sf=sf||0.45;var m=(lo+hi)/2,s=(hi-lo)*sf;return Math.exp(-0.5*Math.pow((+v-m)/s,2));}
+function c01(x){return Math.max(0,Math.min(1,+x));}
+function GI(e){
+  if(!e||e.tmp===undefined)return 0.5;
+  var lxEff=(+e.lx)*(e.blackCh?0.05:1)*(SIM.ledOn?1.0:0.7);
+  var v=[bell(e.tmp,22,30),bell(e.ph,6.5,7.5),bell(e.ec,0.5,2.0),bell(e.do_,5.5,8.5),bell(lxEff,20,45),c01(1-(+e.nh4)/2)];
+  return Math.pow(v.reduce(function(a,b){return a*b;},1),1/v.length);
+}
+function fishGI(e){
+  if(!e||e.tmp===undefined)return 0.5;
+  return Math.pow(Math.max(0,bell(e.tmp,26,30,0.4)*c01(((+e.do_)-4)/4.5)*c01(1-(+e.nh4)/1.5)*bell(e.ph,6.5,8.5,0.4)),0.25);
+}
+function nStep(n,dt,fkg,gi){
+  var k1=0.08,k2=0.12,k3=0.04;
+  function d(s){var exc=fkg*0.015;return[exc-k1*Math.max(0,s[0]),k1*Math.max(0,s[0])-k2*Math.max(0,s[1]),k2*Math.max(0,s[1])-k3*Math.max(0,s[2])*gi];}
+  var a=d(n),s2=[n[0]+a[0]*dt/2,n[1]+a[1]*dt/2,n[2]+a[2]*dt/2],b=d(s2),s3=[n[0]+b[0]*dt/2,n[1]+b[1]*dt/2,n[2]+b[2]*dt/2],c=d(s3),s4=[n[0]+c[0]*dt,n[1]+c[1]*dt,n[2]+c[2]*dt],dd=d(s4);
+  return[Math.max(0,n[0]+(a[0]+2*b[0]+2*c[0]+dd[0])*dt/6),Math.max(0,n[1]+(a[1]+2*b[1]+2*c[1]+dd[1])*dt/6),Math.max(0,n[2]+(a[2]+2*b[2]+2*c[2]+dd[2])*dt/6)];
+}
+function pStep(P,dt,gi){var r=0.04*gi,K=800;function dp(p){return r*p*(1-p/K);}var k1=dp(P),k2=dp(P+k1*dt/2),k3=dp(P+k2*dt/2),k4=dp(P+k3*dt);return Math.max(0,Math.min(K,P+(k1+2*k2+2*k3+k4)*dt/6));}
+
+// ================================================================
+// SIM STATE
+// ================================================================
+// Per-species growth parameters
+var PLANT_TYPES=[
+  // name, optTmpLo, optTmpHi, optPhLo, optPhHi, optEcLo, optEcHi, growRate, harvestG, K
+  {name:'Basil',     tlo:22,thi:28,plo:5.5,phi:7.0,elo:1.0,ehi:1.6,r:0.038,har:120, K:500},
+  {name:'Kangkong',  tlo:24,thi:32,plo:6.0,phi:7.0,elo:0.8,ehi:2.5,r:0.055,har:80,  K:600},
+  {name:'Okra',      tlo:25,thi:35,plo:6.0,phi:7.0,elo:1.0,ehi:2.0,r:0.025,har:200, K:400}
+];
+function plantGI(e,pt){
+  if(!e||e.tmp===undefined)return 0.5;
+  var lxEff=(+e.lx)*(e.blackCh?0.05:1)*(SIM.ledOn?1.0:0.7);
+  var v=[bell(e.tmp,pt.tlo,pt.thi),bell(e.ph,pt.plo,pt.phi),bell(e.ec,pt.elo,pt.ehi),bell(e.do_,5,8),bell(lxEff,18,50),c01(1-(+e.nh4)/2)];
+  return Math.pow(v.reduce(function(a,b){return a*b;},1),1/v.length);
+}
+var SIM={
+  run:false,t:0,dt:0.05,spd:4,
+  pumpOn:true,fanOn:true,evapOn:true,ledOn:true,colorCh:0,
+  colPumps:[true,true,true,false,true],
+  env:{tmp:27,ph:7.0,ec:1.2,do_:7.0,lx:30,co2:920,nh4:0.22,blackCh:false},
+  nit:[0.3,0.05,40],plant:10,fkg:5.0,day:0,airTmp:32,mgBiomass:0.5,
+  // Per-species: basil(Bed A), kangkong(Bed B), okra(Bed B)
+  basilG:8,kangG:8,okraG:5,
+  hist:{tmp:[],gi:[],mg:[]},MH:120,logRows:[],logTimer:0
+};
+var SCENARIOS=[
+  {tmp:30,ph:6.6,ec:1.0,do_:7.2,lx:15,co2:850,nh4:0.35,col:4,fan:true,evap:true,led:true},
+  {tmp:36,ph:7.1,ec:1.4,do_:6.5,lx:8,co2:720,nh4:0.30,col:3,fan:true,evap:true,led:true},
+  {tmp:27,ph:7.0,ec:1.2,do_:7.2,lx:30,co2:950,nh4:0.20,col:0,fan:false,evap:false,led:true}
+];
+var CNAMES=["Blue","Green","Red","Black","Clear"];
+var CEFFECTS=["Leaf development - vegetative growth","Canopy penetration - uniform distribution","Biomass gain - fastest growth","Solar block - use midday 11am-3pm","Natural daylight - max photosynthesis"];
+var CPIPE=[0x3080e0,0x20a050,0xe04020,0x222244,0x40c0a0];
+var CBASE=[0x1a50c0,0x155a28,0xa02808,0x0a0a0a,0x1a4030];
+
+function simTick(){
+  if(!SIM.run)return;
+  for(var i=0;i<SIM.spd;i++){
+    SIM.t+=SIM.dt;
+    SIM.env.blackCh=!!(SIM.colPumps&&SIM.colPumps[3]);
+    var diu=Math.sin((SIM.t%24-6)/24*Math.PI*2);
+    var e={tmp:SIM.env.tmp+(Math.random()-.5)*.4,ph:SIM.env.ph+(Math.random()-.5)*.06,ec:SIM.env.ec+(Math.random()-.5)*.03,do_:SIM.env.do_+(Math.random()-.5)*.22,lx:SIM.env.lx,co2:SIM.env.co2,nh4:Math.max(0,SIM.nit[0]),blackCh:SIM.env.blackCh};
+    if(!SIM.pumpOn)e.do_=Math.max(0,e.do_-.004);
+    var gi=GI(e);
+    SIM.nit=nStep(SIM.nit,SIM.dt*60,SIM.fkg,gi);
+    SIM.plant=pStep(SIM.plant,SIM.dt/24,gi);
+    SIM.mgBiomass=Math.min(30,SIM.mgBiomass+(SIM.env.blackCh?.00003:.00018)*gi);
+    // Per-species growth with own optimal ranges
+    var bgi=plantGI(e,PLANT_TYPES[0]),kgi=plantGI(e,PLANT_TYPES[1]),ogi=plantGI(e,PLANT_TYPES[2]);
+    function pStepS(P,dt,gi,pt){var r=pt.r*gi,K=pt.K;function dp(p){return r*p*(1-p/K);}var k1=dp(P),k2=dp(P+k1*dt/2),k3=dp(P+k2*dt/2),k4=dp(P+k3*dt);return Math.max(0,Math.min(K,P+(k1+2*k2+2*k3+k4)*dt/6));}
+    SIM.basilG=pStepS(SIM.basilG,SIM.dt/24,bgi,PLANT_TYPES[0]);
+    SIM.kangG =pStepS(SIM.kangG, SIM.dt/24,kgi,PLANT_TYPES[1]);
+    SIM.okraG =pStepS(SIM.okraG, SIM.dt/24,ogi,PLANT_TYPES[2]);
+    SIM.env.nh4=SIM.nit[0];
+    SIM.day=SIM.t/24;
+    SIM.airTmp=SIM.env.tmp+(SIM.fanOn?1.5:8)+(SIM.evapOn?-5:0)+(SIM.env.blackCh?-7:0)+diu*2.5;
+    function push(a,v){a.push(v);if(a.length>SIM.MH)a.shift();}
+    push(SIM.hist.tmp,e.tmp);push(SIM.hist.gi,gi);push(SIM.hist.mg,SIM.mgBiomass);
+    SIM.logTimer+=SIM.dt;
+    if(SIM.logTimer>=5/60){
+      SIM.logTimer=0;
+      var h=Math.floor(SIM.t%24),m=Math.floor((SIM.t%1)*60);
+      SIM.logRows.push('D'+Math.floor(SIM.day)+' '+(h<10?'0':'')+h+':'+(m<10?'0':'')+m+',pH,'+(e.ph||0).toFixed(2)+',T,'+(e.tmp||0).toFixed(1)+',DO,'+(e.do_||0).toFixed(1)+',EC,'+(e.ec||0).toFixed(2)+',NH4,'+(e.nh4||0).toFixed(3)+',AirT,'+(SIM.airTmp||0).toFixed(1)+',Ch,'+CNAMES[SIM.colorCh]+',Fan,'+(SIM.fanOn?1:0)+',Evap,'+(SIM.evapOn?1:0));
+      if(SIM.logRows.length>500)SIM.logRows.shift();
+    }
+  }
+}
+
+// ================================================================
+// THREE.JS  - SCENE SETUP
+// ================================================================
+var c3=document.getElementById('c3d');
+var renderer=new THREE.WebGLRenderer({canvas:c3,antialias:true});
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x151a1e,1);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+var scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x151a1e,0.026);
+var camera=new THREE.PerspectiveCamera(46,1,0.1,300);camera.position.set(20,15,20);camera.lookAt(0,3,0);
+function resz(){var w=c3.parentElement.clientWidth,h=c3.parentElement.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+window.addEventListener('resize',resz);setTimeout(resz,80);
+
+// LIGHTS
+scene.add(new THREE.AmbientLight(0x1a2530,1.0));
+var sun=new THREE.DirectionalLight(0xd0e8f8,1.3);sun.position.set(12,22,8);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.near=0.5;sun.shadow.camera.far=100;
+sun.shadow.camera.left=-35;sun.shadow.camera.right=35;sun.shadow.camera.top=35;sun.shadow.camera.bottom=-35;
+scene.add(sun);
+scene.add(new THREE.HemisphereLight(0x1e2e3c,0x0e151a,0.45));
+var fillLight=new THREE.DirectionalLight(0x2a6a88,0.5);fillLight.position.set(-8,6,-8);scene.add(fillLight);
+var polyGlow=new THREE.PointLight(0x2a6a88,1.8,14);polyGlow.position.set(0,5,0);scene.add(polyGlow);
+var bioGlow=new THREE.PointLight(0x60d4fa,0.8,5);bioGlow.position.set(-4.5,2,0);scene.add(bioGlow);
+var ledPts=[];var ledCols=[0x3060ff,0x40cc60,0xff6040,0x111111,0x90d0b0];
+for(var li=0;li<3;li++){var lp=new THREE.PointLight(0x4ab8d8,1.0,8);lp.position.set(-2+li*2,6.8,0);scene.add(lp);ledPts.push(lp);}
+
+// MATERIAL HELPERS
+function ms(col,opts){return new THREE.MeshStandardMaterial(Object.assign({color:col,roughness:0.55,metalness:0.1},opts||{}));}
+var glassMat=new THREE.MeshStandardMaterial({color:0xb0d8f0,transparent:true,opacity:0.13,roughness:0,metalness:0.7,side:THREE.DoubleSide});
+var polyCabMat=new THREE.MeshStandardMaterial({color:0xc0e0f8,transparent:true,opacity:0.17,roughness:0.02,metalness:0.55,side:THREE.DoubleSide});
+var waterMat=new THREE.MeshStandardMaterial({color:0x1a3a52,transparent:true,opacity:0.72,roughness:0.05});
+var M={
+  steel:ms(0x334155,{metalness:0.75,roughness:0.25}),stlbr:ms(0x475569,{metalness:0.65,roughness:0.2}),
+  bio:  ms(0x1a2a38,{roughness:0.7}),grow: ms(0x1e2f3e,{metalness:0.4,roughness:0.5}),
+  led:  new THREE.MeshStandardMaterial({color:0xfef9c3,emissive:0xfef08a,emissiveIntensity:2.2,roughness:0.5}),
+  iot:  ms(0x1e3a54,{metalness:0.6,roughness:0.3}),gravel:ms(0x1c2830,{roughness:1.0}),
+  pump: ms(0x1e293b,{metalness:0.7,roughness:0.2}),fan:ms(0x334155,{metalness:0.6,roughness:0.3}),
+  foam: ms(0x1e2e3c,{roughness:0.9}),evap: ms(0x2a3f50,{roughness:0.95}),
+  excel:ms(0x1a2a3c,{metalness:0.3}),pvc:ms(0x556677,{metalness:0.3,roughness:0.5})
+};
+
+function bx(w,h,d,mat,x,y,z){var m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+function cy(r1,r2,h,seg,mat,x,y,z,rx){var m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,seg||16),mat);m.position.set(x,y,z);if(rx!==undefined)m.rotation.x=rx;m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+function sp(r,seg,mat,x,y,z){var m=new THREE.Mesh(new THREE.SphereGeometry(r,seg||8,seg||8),mat);m.position.set(x,y,z);m.castShadow=true;scene.add(m);return m;}
+function tb(pts,r,mat){
+  if(pts.length<2)return null;
+  var v3=pts.map(function(p){return new THREE.Vector3(p[0],p[1],p[2]);});
+  var curve=new THREE.CatmullRomCurve3(v3);
+  var geo=new THREE.TubeGeometry(curve,Math.max(8,pts.length*8),r,8,false);
+  var m=new THREE.Mesh(geo,mat);m.castShadow=true;scene.add(m);return m;
+}
+
+// FLOOR
+scene.add(new THREE.GridHelper(80,80,0x1c2a38,0x111518));
+var flr=new THREE.Mesh(new THREE.PlaneGeometry(80,80),ms(0x111518,{roughness:0.95}));flr.rotation.x=-Math.PI/2;flr.position.y=-0.02;flr.receiveShadow=true;scene.add(flr);
+bx(36,0.18,18,ms(0x111518,{roughness:0.99}),0,0.01,0);
+
+// ================================================================
+// EXACT COORDINATES  (all pipes connect to these precisely)
+// ================================================================
+// Polyhouse
+var PW=10, PH=7, PD=6, PBY=0.2;
+// Key polyhouse edges:
+var PL=-5, PR=5, PF=-3, PBK=3, PT=PBY+PH; // left,right,front,back,top
+// Grow beds (inside polyhouse)
+var BDA={bz:-1.4,bh:1.2}; // Bed A: front row
+var BDB={bz:1.4,bh:2.6};  // Bed B: back row, elevated
+// Bed A water surface: Y = PBY+BDA.bh+0.19 = 0.2+1.2+0.19 = 1.59
+// Bed B water surface: Y = PBY+BDB.bh+0.19 = 0.2+2.6+0.19 = 2.99
+// Bed outlet (right side, at bed water level): X=PR-0.3, Y=PBY+bh+0.2
+var BDA_OUT_Y = PBY+BDA.bh+0.2; // 1.6
+var BDB_OUT_Y = PBY+BDB.bh+0.2; // 3.0
+// Bed inlet (left side, top of bed)
+var BED_IN_X  = PL+0.25;        // -4.75 (just inside left wall)
+// Fish tank
+var TX=-10.5, TZ=0;
+var TANK_R = TX+3.5; // -7.0  (right edge of tank)
+var TANK_OUT_Y = 1.4; // outlet from side
+// Biofilter
+var BX=-5.8, BZ=0;
+var BIO_BOT_Y = 0.1;  // inlet at bottom
+var BIO_TOP_Y = 3.3;  // outlet at top
+// Water pump
+var PMP_X=-3.8, PMP_Y=0.32, PMP_Z=0;
+// Colour pump and tanks (behind back wall)
+var COL_PUMP_X=PR-0.5, COL_PUMP_Y=0.18, COL_PUMP_Z=PBK+0.5; // 4.5, 0.18, 3.5
+var COL_MANIF_Y=PBY+0.55; // manifold height
+// Return manifold (right side outside polyhouse)
+var RET_X=PR+0.6; // 5.6
+// IoT hub
+var IOT_X=PR+1.8, IOT_Z=PBK-0.8; // 6.8, 2.2
+
+// ================================================================
+// POLYHOUSE STRUCTURE
+// ================================================================
+var pfm=M.pvc;
+// 4 vertical corner pillars
+for(var cx=-1;cx<=1;cx+=2)for(var cz=-1;cz<=1;cz+=2)bx(0.14,PH,0.14,pfm,cx*PW/2,PBY+PH/2,cz*PD/2);
+// Top frame
+bx(PW,0.12,0.14,pfm,0,PT,PF);bx(PW,0.12,0.14,pfm,0,PT,PBK);
+bx(0.14,0.12,PD,pfm,PL,PT,0);bx(0.14,0.12,PD,pfm,PR,PT,0);
+// Bottom frame
+bx(PW,0.12,0.14,pfm,0,PBY,PF);bx(PW,0.12,0.14,pfm,0,PBY,PBK);
+bx(0.14,0.12,PD,pfm,PL,PBY,0);bx(0.14,0.12,PD,pfm,PR,PBY,0);
+// Mid horizontal rails
+bx(PW,0.09,0.09,pfm,0,PBY+PH*0.5,PF);bx(PW,0.09,0.09,pfm,0,PBY+PH*0.5,PBK);
+bx(0.09,0.09,PD,pfm,PL,PBY+PH*0.5,0);bx(0.09,0.09,PD,pfm,PR,PBY+PH*0.5,0);
+// Roof ridge
+bx(PW+0.2,0.14,0.14,pfm,0,PT,0);
+// Polycarbonate panels
+bx(PW,PH,0.07,polyCabMat,0,PBY+PH/2,PF);bx(PW,PH,0.07,polyCabMat,0,PBY+PH/2,PBK);
+bx(0.07,PH,PD,polyCabMat,PL,PBY+PH/2,0);bx(0.07,PH,PD,polyCabMat,PR,PBY+PH/2,0);
+bx(PW,0.07,PD,polyCabMat,0,PT+0.04,0);
+
+// ================================================================
+// NOTE: Scene construction continues below (colour circuit, grow beds, etc.)
+// ================================================================
+
+// ================================================================
+// COLOUR CIRCUIT - 5 tanks, each with OWN pump, supply pipe, return + drain valve
+// Tanks behind back wall at Z=PBK+0.95, X = -2.2,-1.1,0,1.1,2.2
+// Each pump individually toggled via Colour panel
+// ================================================================
+var CTANK_COLORS_ARR=[0x0a2060,0x063020,0x601808,0x0a0a0a,0x0a3050];
+var CPIPE_COLORS_ARR=[0x3080e0,0x20a050,0xe04020,0x444444,0x40c0a0];
+var CTANK_X_ARR=[-2.2,-1.1,0.0,1.1,2.2];
+var CTANK_Z_V=PBK+0.95;
+var CTANK_CY=PBY+0.42;
+
+var COL_PUMP_MESHES=[];
+var COL_SUP_PATHS=[];
+var COL_RET_PATHS=[];
+var COL_SUP_PARTICLES=[];
+var COL_RET_PARTICLES=[];
+var CPIPES_NEW=[];
+
+// Clean pipe routing constants
+// Supply route: pump -> back-wall collector -> RIGHT side exterior -> front exterior -> channel
+// Return route: left end of channel -> LEFT side exterior -> back -> tank
+var SUP_X = PR+0.55;   // right exterior X for supply run
+var RET_LX = PL-0.45;  // left exterior X for return run
+var SUP_MID_Y = 1.6;   // height of horizontal supply run
+var RET_MID_Y = 1.2;   // height of horizontal return run
+
+// Shared right-side supply manifold (one pipe from back to front at right exterior)
+var supManMat=new THREE.MeshStandardMaterial({color:0x2a3f55,metalness:0.35,roughness:0.5});
+tb([[SUP_X,SUP_MID_Y,CTANK_Z_V-0.3],[SUP_X,SUP_MID_Y,PF-0.12]],0.035,supManMat);
+
+// Shared left-side return manifold
+var retManMat=new THREE.MeshStandardMaterial({color:0x1e2e40,metalness:0.3,roughness:0.5});
+tb([[RET_LX,RET_MID_Y,PF-0.12],[RET_LX,RET_MID_Y,CTANK_Z_V-0.3]],0.030,retManMat);
+
+for(var ct=0;ct<5;ct++){
+  var ctx=CTANK_X_ARR[ct];
+  var cTankMat=new THREE.MeshStandardMaterial({color:CTANK_COLORS_ARR[ct],roughness:0.6,metalness:0.2});
+  var cPipeMat=new THREE.MeshStandardMaterial({color:CPIPE_COLORS_ARR[ct],metalness:0.3,roughness:0.5,emissive:CPIPE_COLORS_ARR[ct],emissiveIntensity:ct===3?0:0.22});
+  var cRetMat =new THREE.MeshStandardMaterial({color:CPIPE_COLORS_ARR[ct],metalness:0.2,roughness:0.5,transparent:true,opacity:0.75});
+
+  // Tank body
+  cy(0.28,0.28,0.65,12,cTankMat,ctx,CTANK_CY,CTANK_Z_V);
+  // Level sight glass
+  bx(0.04,0.45,0.04,new THREE.MeshStandardMaterial({color:0x80d4e8,transparent:true,opacity:0.6}),ctx+0.29,CTANK_CY,CTANK_Z_V);
+
+  // Mini pump at back wall exterior
+  var pmpX=ctx, pmpY=0.22, pmpZ=PBK+0.38;
+  bx(0.34,0.22,0.28,M.pump,pmpX,pmpY,pmpZ);
+  cy(0.10,0.10,0.06,8,M.stlbr,pmpX,pmpY,pmpZ+0.15);
+  COL_PUMP_MESHES.push({x:pmpX,y:pmpY,z:pmpZ,ch:ct});
+
+  // Tank outlet to pump (short low pipe)
+  tb([[ctx,CTANK_CY-0.30,CTANK_Z_V],[ctx,pmpY+0.06,CTANK_Z_V],[ctx,pmpY+0.06,pmpZ+0.14]],0.028,cTankMat);
+
+  // Channel Y position on front wall
+  var chanY=PBY+1.0+ct*0.85;
+
+  // SUPPLY PATH (clean right-wall routing):
+  // pump outlet -> right exterior manifold tap -> horizontal front-wall run -> drop to channel
+  var supPath=[
+    [pmpX, pmpY, pmpZ-0.15],           // pump outlet (forward)
+    [pmpX, SUP_MID_Y, PBK+0.15],       // rise to manifold height, near back wall
+    [SUP_X, SUP_MID_Y, PBK+0.15],      // go to right exterior
+    [SUP_X, SUP_MID_Y, PF-0.12],       // run along right exterior to front
+    [ctx, SUP_MID_Y, PF-0.12],         // horizontal along front exterior to channel X
+    [ctx, chanY, PF-0.10]              // drop down to channel height
+  ];
+  tb(supPath,0.022,cPipeMat);
+  COL_SUP_PATHS.push(supPath);
+
+  // Drain valve box at channel supply entry
+  bx(0.10,0.10,0.10,new THREE.MeshStandardMaterial({color:CTANK_COLORS_ARR[ct],metalness:0.65}),ctx,chanY,PF-0.14);
+
+  // Channel pipe on front wall (horizontal, colour-coded)
+  var chanPipe=bx(PW-0.22,0.11,0.11,cPipeMat,0,chanY,PF-0.07);
+  CPIPES_NEW.push(chanPipe);
+
+  // RETURN PATH (clean left-wall routing):
+  // left end of channel -> left exterior manifold -> back along left exterior -> up into tank
+  var retPath=[
+    [PL+0.28, chanY, PF-0.08],        // left end of channel
+    [RET_LX, chanY, PF-0.12],         // step to left exterior
+    [RET_LX, RET_MID_Y, PF-0.12],    // drop to return manifold height
+    [RET_LX, RET_MID_Y, CTANK_Z_V-0.3],// run back along left exterior
+    [ctx-0.06, RET_MID_Y, CTANK_Z_V-0.3],// approach tank X
+    [ctx-0.06, CTANK_CY+0.30, CTANK_Z_V] // rise into tank top
+  ];
+  tb(retPath,0.018,cRetMat);
+  COL_RET_PATHS.push(retPath);
+
+  // Return inlet valve at tank top
+  bx(0.09,0.09,0.09,new THREE.MeshStandardMaterial({color:0x334444,metalness:0.65}),ctx-0.06,CTANK_CY+0.45,CTANK_Z_V-0.15);
+
+  // Supply flow particles
+  var supArr=[];
+  for(var fp=0;fp<5;fp++){
+    var sm=new THREE.Mesh(new THREE.SphereGeometry(0.052,6,6),new THREE.MeshStandardMaterial({color:CPIPE_COLORS_ARR[ct],emissive:CPIPE_COLORS_ARR[ct],emissiveIntensity:0.65,transparent:true,opacity:0.88}));
+    sm._pts=supPath;sm._t=fp/5;sm._spd=0.0038+Math.random()*0.0018;sm._ch=ct;
+    scene.add(sm);supArr.push(sm);
+  }
+  COL_SUP_PARTICLES.push(supArr);
+
+  // Return flow particles
+  var retArr=[];
+  for(var rp=0;rp<4;rp++){
+    var rm=new THREE.Mesh(new THREE.SphereGeometry(0.040,6,6),new THREE.MeshStandardMaterial({color:CPIPE_COLORS_ARR[ct],emissive:CPIPE_COLORS_ARR[ct],emissiveIntensity:0.35,transparent:true,opacity:0.65}));
+    rm._pts=retPath;rm._t=rp/4+0.5;rm._spd=0.003+Math.random()*0.0015;rm._ch=ct;
+    scene.add(rm);retArr.push(rm);
+  }
+  COL_RET_PARTICLES.push(retArr);
+}
+
+// Backwards-compat alias
+var CPIPES=CPIPES_NEW;
+
+// ================================================================
+// EVAPORATIVE COOLING PAD  (left exterior, CONNECTED to drip supply)
+// ================================================================
+bx(0.2,PH-0.5,PD-0.5,M.evap,PL-0.11,PBY+PH/2+0.25,0);
+// Drip supply header (top of pad, horizontal)
+bx(PD-0.5,0.055,0.055,ms(0x2a5a72),PL-0.11,PT-0.1,0);
+// Drip supply feeder pipe from rooftop manifold down to header
+var evpMat=ms(0x2a5a72,{metalness:0.3,roughness:0.5});
+tb([
+  [PL-0.11,PT-0.1,0],             // header
+  [PL-0.11,PT+0.1,0],             // up to roof level
+  [PL-0.11,PT+0.1,PBK-0.5],       // run along roof to back
+  [PL-0.11,PT+0.1,PBK+0.3],       // continue outside back wall
+  [COL_PUMP_X-0.5,PT+0.1,PBK+0.3],// across to water supply point
+  [COL_PUMP_X-0.5,1.5,PBK+0.3],  // drop down to tank level
+  [COL_PUMP_X-0.5,1.5,PBK+0.7]   // connect to water reserve tank
+],0.025,evpMat);
+// Condensate/drain tray under evap pad
+bx(0.18,0.05,PD-0.5,ms(0x1e2c3a),PL-0.11,PBY+0.1,0);
+// Small water reserve tank for evap supply (behind left side)
+cy(0.3,0.3,0.7,10,ms(0x1e2c3a,{roughness:0.6}),COL_PUMP_X-0.5,PBY+0.45,PBK+0.7);
+// Visible water drips on pad face
+for(var di=0;di<8;di++){sp(0.04,5,new THREE.MeshStandardMaterial({color:0x38bdf8,transparent:true,opacity:0.6}),PL-0.11,PBY+0.5+di*0.45,-PD/2+0.4+di%3*0.5);}
+
+// ================================================================
+// EXHAUST FAN  (back wall top, CONNECTED to duct)
+// ================================================================
+bx(0.75,0.75,0.12,M.fan,0,PT-0.4,PBK);
+var fanGrp=new THREE.Group();
+for(var fb=0;fb<4;fb++){var bl=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.08,0.028),ms(0x445566,{metalness:0.6}));bl.position.set(0.15,0,0);bl.rotation.z=fb*Math.PI/2;var pv=new THREE.Group();pv.add(bl);fanGrp.add(pv);}
+fanGrp.position.set(0,PT-0.4,PBK+0.07);scene.add(fanGrp);
+// Exhaust duct from fan outward (short stub)
+bx(0.3,0.3,0.5,ms(0x334155,{metalness:0.5}),0,PT-0.4,PBK+0.35);
+
+// ================================================================
+// LED GROW LIGHTS  (inside, under roof)
+// ================================================================
+var LEDSTRIPS=[];
+for(var li2=0;li2<5;li2++){var ls=bx(1.2,0.06,0.28,M.led,-2.6+li2*1.3,PT-0.12,0);LEDSTRIPS.push(ls);}
+
+// ================================================================
+// GROW BED A  (lower tier, inside front of polyhouse, bz=-1.4)
+// ================================================================
+var BDA_Y = PBY+BDA.bh; // 1.4
+bx(9.2,0.26,2.2,M.grow,0,BDA_Y,BDA.bz);
+bx(8.8,0.1,1.8,waterMat,0,BDA_Y+0.19,BDA.bz);
+for(var np=0;np<10;np++)cy(0.22,0.18,0.24,8,ms(0x1c1917,{roughness:0.9}),-4.1+np*0.92,BDA_Y+0.24,BDA.bz);
+bx(9.2,0.42,0.09,M.grow,0,BDA_Y+0.25,BDA.bz-1.1);bx(9.2,0.42,0.09,M.grow,0,BDA_Y+0.25,BDA.bz+1.1);
+bx(0.09,0.42,2.2,M.grow,PL+0.3,BDA_Y+0.25,BDA.bz);bx(0.09,0.42,2.2,M.grow,PR-0.3,BDA_Y+0.25,BDA.bz);
+// Bed A support legs (rest on floor inside polyhouse)
+for(var lx5=-1;lx5<=1;lx5+=2){cy(0.06,0.06,BDA_Y,8,M.steel,lx5*4.1,BDA_Y/2,BDA.bz-0.9);cy(0.06,0.06,BDA_Y,8,M.steel,lx5*4.1,BDA_Y/2,BDA.bz+0.9);}
+
+// ================================================================
+// GROW BED B  (upper tier, inside back of polyhouse, bz=+1.4)
+// ================================================================
+var BDB_Y = PBY+BDB.bh; // 2.8
+bx(9.2,0.26,2.2,M.grow,0,BDB_Y,BDB.bz);
+bx(8.8,0.1,1.8,waterMat,0,BDB_Y+0.19,BDB.bz);
+for(var np2=0;np2<10;np2++)cy(0.22,0.18,0.24,8,ms(0x1c1917,{roughness:0.9}),-4.1+np2*0.92,BDB_Y+0.24,BDB.bz);
+bx(9.2,0.42,0.09,M.grow,0,BDB_Y+0.25,BDB.bz-1.1);bx(9.2,0.42,0.09,M.grow,0,BDB_Y+0.25,BDB.bz+1.1);
+bx(0.09,0.42,2.2,M.grow,PL+0.3,BDB_Y+0.25,BDB.bz);bx(0.09,0.42,2.2,M.grow,PR-0.3,BDB_Y+0.25,BDB.bz);
+for(var lx6=-1;lx6<=1;lx6+=2){cy(0.06,0.06,BDB_Y,8,M.steel,lx6*4.1,BDB_Y/2,BDB.bz-0.9);cy(0.06,0.06,BDB_Y,8,M.steel,lx6*4.1,BDB_Y/2,BDB.bz+0.9);}
+
+// Microgreens tray (on Bed A, far right corner)
+bx(2.0,0.07,0.9,M.foam,3.6,BDA_Y+0.35,BDA.bz);
+var MPLANTS=[];
+for(var mi=0;mi<12;mi++){
+  var mp=sp(0.05,5,ms(0x4ade80,{roughness:0.9,emissive:0x1a5020,emissiveIntensity:0.35}),2.8+mi%4*0.44,BDA_Y+0.44,BDA.bz+(Math.floor(mi/4)-1)*0.28);
+  mp._by=BDA_Y+0.44;MPLANTS.push(mp);
+}
+
+// PLANTS on grow beds — per-species types
+// Bed A (bd=0): alternating Basil(type 0) plants
+// Bed B (bd=1): alternating Kangkong(type 1) and Okra(type 2)
+var GBPLANTS=[];
+for(var bd=0;bd<2;bd++){
+  var bz2=bd===0?BDA.bz:BDB.bz,bh2=bd===0?BDA_Y:BDB_Y;
+  for(var pi=0;pi<10;pi++){
+    var pg=new THREE.Group();pg.position.set(-4.1+pi*0.92,bh2+0.42,bz2);pg._ph=Math.random()*Math.PI*2;
+    var ptype= bd===0 ? 0 : (pi%2===0?1:2); // Bed A=Basil, Bed B alternates Kangkong/Okra
+    scene.add(pg);GBPLANTS.push({g:pg,h:0,type:ptype,bd:bd});
+  }
+}
+
+function buildPl(p,h,gi){
+  while(p.g.children.length)p.g.remove(p.g.children[0]);
+  var t=p.type||0;
+  var hscale=[0.42,0.62,0.88][t];   // Basil medium, Kangkong tall-ish, Okra tallest
+  var sh=Math.max(0.04,h*hscale);
+  var sc=gi>0.7?0x16a34a:gi>0.45?0x65a30d:0x854d0e;
+  var stemR=t===2?0.018:0.013;       // Okra has thicker stem
+  var stem=new THREE.Mesh(new THREE.CylinderGeometry(stemR*0.7,stemR,sh,6),ms(sc,{roughness:0.9}));stem.position.y=sh/2;p.g.add(stem);
+
+  if(t===0){
+    // BASIL: bushy round canopy, multiple leaf whorls, round broad leaves
+    var lc=gi>0.7?0x22c55e:gi>0.45?0x4ade80:0xfbbf24;
+    var nl=Math.max(2,Math.floor(3+h*5));
+    for(var i=0;i<nl;i++){
+      var lsz=0.07+h*0.10; var leaf=new THREE.Mesh(new THREE.SphereGeometry(lsz,6,4),new THREE.MeshStandardMaterial({color:lc,roughness:0.8,side:THREE.DoubleSide}));
+      leaf.scale.set(1.1,0.28,0.85); var ang=p.g._ph+(i/nl)*Math.PI*2;
+      leaf.position.set(Math.cos(ang)*(0.05+h*0.12),sh*0.3+i*sh/nl*0.9,Math.sin(ang)*(0.05+h*0.12));
+      p.g.add(leaf);
+    }
+    // Tip cluster
+    if(h>0.3){var tip=new THREE.Mesh(new THREE.SphereGeometry(0.045,6,4),new THREE.MeshStandardMaterial({color:0x4ade80,roughness:0.7}));tip.scale.set(1.2,0.4,1.2);tip.position.y=sh+0.03;p.g.add(tip);}
+  }
+  else if(t===1){
+    // KANGKONG: elongated arrow-head leaves, trailing spread
+    var lc=gi>0.7?0x34d399:gi>0.45?0x4ade80:0x86efac;
+    var nl=Math.max(3,Math.floor(3+h*7));
+    for(var i=0;i<nl;i++){
+      var lsz=0.05+h*0.09; var leaf=new THREE.Mesh(new THREE.SphereGeometry(lsz,6,4),new THREE.MeshStandardMaterial({color:lc,roughness:0.75,side:THREE.DoubleSide}));
+      leaf.scale.set(0.55,0.22,1.45); // elongated arrow shape
+      var ang=p.g._ph+(i/nl)*Math.PI*2+0.4;
+      var spread=0.06+h*0.18;
+      leaf.position.set(Math.cos(ang)*spread,sh*0.15+i*sh/nl,Math.sin(ang)*spread);
+      leaf.rotation.y=ang;
+      p.g.add(leaf);
+    }
+    // Vine tendrils (extra trailing stems when mature)
+    if(h>0.4){for(var ti=0;ti<2;ti++){var tend=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.005,sh*0.55,5),ms(sc,{roughness:0.9}));tend.rotation.z=(ti===0?.35:-.35);tend.position.set(ti===0?.08:-.08,sh*0.45,0);p.g.add(tend);}}
+  }
+  else if(t===2){
+    // OKRA: tall single-stem, large star-shaped leaves, pods when mature
+    var lc=gi>0.7?0x16a34a:gi>0.45?0x4ade80:0xfbbf24;
+    var nl=Math.max(2,Math.floor(2+h*4));
+    for(var i=0;i<nl;i++){
+      // Large 5-lobed leaf (approximate with scaled sphere + star fingers)
+      var lsz=0.08+h*0.12; var leaf=new THREE.Mesh(new THREE.SphereGeometry(lsz,7,5),new THREE.MeshStandardMaterial({color:lc,roughness:0.8,side:THREE.DoubleSide}));
+      leaf.scale.set(1.3,0.22,1.0); var ang=p.g._ph+(i/nl)*Math.PI*2;
+      var alt=0.08+h*0.10;
+      leaf.position.set(Math.cos(ang)*alt,sh*0.25+i*sh/nl,Math.sin(ang)*alt);
+      p.g.add(leaf);
+    }
+    // Okra pods when plant is large enough
+    if(h>0.55){
+      var nPods=Math.floor(1+h*3);
+      for(var pp=0;pp<nPods;pp++){
+        var pod=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.009,0.09+h*0.08,6),ms(0x84cc16,{roughness:0.7}));
+        var pang=p.g._ph+pp*1.3; pod.rotation.z=0.4; pod.position.set(Math.cos(pang)*0.06,sh*0.45+pp*0.12,Math.sin(pang)*0.06);
+        p.g.add(pod);
+      }
+    }
+  }
+}
+GBPLANTS.forEach(function(p){buildPl(p,0.08,0.9);});
+
+// ================================================================
+// FISH TANK  (outside left)
+// ================================================================
+bx(7,3.8,0.09,glassMat,TX,1.9,TZ-3.2);bx(7,3.8,0.09,glassMat,TX,1.9,TZ+3.2);
+bx(0.09,3.8,6.4,glassMat,TX-3.5,1.9,TZ);bx(0.09,3.8,6.4,glassMat,TX+3.5,1.9,TZ);
+bx(7,0.1,6.4,M.steel,TX,0.05,TZ);
+for(var fx=-1;fx<=1;fx+=2)for(var fz=-1;fz<=1;fz+=2)bx(0.14,3.9,0.14,M.stlbr,TX+fx*3.5,1.9,TZ+fz*3.2);
+bx(7.2,0.12,0.14,M.stlbr,TX,3.84,TZ-3.2);bx(7.2,0.12,0.14,M.stlbr,TX,3.84,TZ+3.2);
+bx(0.14,0.12,6.6,M.stlbr,TX-3.5,3.84,TZ);bx(0.14,0.12,6.6,M.stlbr,TX+3.5,3.84,TZ);
+bx(6.8,0.22,6.0,M.gravel,TX,0.16,TZ);
+var waterMesh=bx(6.8,0.09,6.0,waterMat,TX,2.8,TZ);
+// Aeration manifold inside tank
+bx(5.8,0.04,0.04,ms(0x334155,{metalness:0.5}),TX,0.28,TZ);
+for(var ai=0;ai<6;ai++)bx(0.04,0.22,0.04,ms(0x334155),TX-2.4+ai,0.38,TZ);
+
+// FISH
+var FISH=[];var fcols=[0x4ade80,0x34d399,0xfbbf24,0x38bdf8,0xa78bfa,0xf472b6,0x60a5fa,0xfb923c,0x4ade80,0x06b6d4];
+for(var fi=0;fi<16;fi++){
+  var fg=new THREE.Group();
+  var fb2=new THREE.Mesh(new THREE.SphereGeometry(0.21,8,6),ms(fcols[fi%fcols.length],{roughness:0.7}));fb2.scale.set(2.1,0.72,0.88);
+  var ft=new THREE.Mesh(new THREE.ConeGeometry(0.13,0.32,6),ms(0x166534,{roughness:0.8}));ft.rotation.z=Math.PI/2;ft.position.x=-0.36;
+  var fe=new THREE.Mesh(new THREE.SphereGeometry(0.03,6,6),ms(0x050505));fe.position.set(0.17,0.08,0.13);
+  fg.add(fb2);fg.add(ft);fg.add(fe);
+  fg.position.set(TX+(-3+Math.random()*6),0.7+Math.random()*1.8,TZ+(-2.7+Math.random()*5.4));
+  fg._off=Math.random()*Math.PI*2;fg._spd=0.28+Math.random()*0.45;fg._rad=1.1+Math.random()*1.5;
+  scene.add(fg);FISH.push(fg);
+}
+// BUBBLES
+var NB=90;var bubG=new THREE.BufferGeometry();var bpa=new Float32Array(NB*3),bva=new Float32Array(NB);
+for(var bi=0;bi<NB;bi++){bpa[bi*3]=TX+(-3+Math.random()*6);bpa[bi*3+1]=0.3+Math.random()*2.2;bpa[bi*3+2]=TZ+(-2.8+Math.random()*5.6);bva[bi]=0.007+Math.random()*0.013;}
+bubG.setAttribute('position',new THREE.BufferAttribute(bpa,3));
+var bubPts=new THREE.Points(bubG,new THREE.PointsMaterial({color:0x7dd3fc,size:0.07,transparent:true,opacity:0.6}));scene.add(bubPts);
+
+// ================================================================
+// BIOFILTER  (between fish tank and polyhouse left wall)
+// ================================================================
+cy(0.85,0.95,3.2,16,M.bio,BX,1.6,BZ);
+cy(0.97,0.97,0.12,16,M.stlbr,BX,BIO_TOP_Y,BZ);cy(0.97,0.97,0.12,16,M.stlbr,BX,BIO_BOT_Y,BZ);
+for(var bm=0;bm<10;bm++)sp(0.07,6,ms(0x15803d),BX+(-.38+Math.random()*.76),0.5+Math.random()*2.3,BZ+(-.38+Math.random()*.76));
+var bioWin=new THREE.Mesh(new THREE.CircleGeometry(0.32,20),new THREE.MeshStandardMaterial({color:0x80d4e8,transparent:true,opacity:0.5,side:THREE.DoubleSide}));
+bioWin.rotation.y=Math.PI/2;bioWin.position.set(BX+0.96,1.7,BZ);scene.add(bioWin);
+
+// ================================================================
+// WATER PUMP  (between biofilter and left wall)
+// ================================================================
+var pmG=new THREE.Group();
+var pbd=new THREE.Mesh(new THREE.BoxGeometry(0.65,0.48,0.48),M.pump);
+var pim=new THREE.Mesh(new THREE.CylinderGeometry(0.19,0.19,0.1,12),M.stlbr);pim.rotation.x=Math.PI/2;pim.position.z=0.28;
+pmG.add(pbd);pmG.add(pim);pmG.position.set(PMP_X,PMP_Y,PMP_Z);scene.add(pmG);
+
+// ================================================================
+// IoT HUB + SD CARD  (outside right of polyhouse)
+// ================================================================
+var iotG=new THREE.Group();
+var ib=new THREE.Mesh(new THREE.BoxGeometry(0.95,0.65,0.6),M.iot);
+var isc=new THREE.Mesh(new THREE.PlaneGeometry(0.68,0.4),new THREE.MeshStandardMaterial({color:0x38bdf8,emissive:0x0ea5e9,emissiveIntensity:0.95}));isc.position.set(0,0,0.31);
+var iat=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.65,6),new THREE.MeshStandardMaterial({color:0x60a5fa,metalness:0.6}));iat.position.y=0.65;
+iotG.add(ib);iotG.add(isc);iotG.add(iat);iotG.position.set(IOT_X,0.38,IOT_Z);scene.add(iotG);
+var sdG=new THREE.Group();
+var sdb=new THREE.Mesh(new THREE.BoxGeometry(0.65,0.55,0.09),M.excel);
+var sdc=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.32,0.05),ms(0x334400,{metalness:0.5}));sdc.position.set(0,0.02,0.08);
+sdG.add(sdb);sdG.add(sdc);sdG.position.set(IOT_X,1.08,IOT_Z);scene.add(sdG);
+var WIFI=[];
+for(var wi=0;wi<4;wi++){
+  var wr=new THREE.Mesh(new THREE.TorusGeometry(0.22+wi*0.16,0.016,6,24),new THREE.MeshStandardMaterial({color:0x38bdf8,transparent:true,opacity:0.4-wi*0.07,emissive:0x38bdf8,emissiveIntensity:0.4}));
+  wr.rotation.x=Math.PI/2;wr.position.set(IOT_X,1.18,IOT_Z);wr._ph=wi*0.7;scene.add(wr);WIFI.push(wr);
+}
+// Sensor cable from IoT hub to fish tank (runs along floor)
+tb([[IOT_X,0.12,IOT_Z],[IOT_X,0.12,TZ],[TANK_R+0.2,0.12,TZ]],0.018,ms(0x223344,{roughness:0.9}));
+
+// ================================================================
+// WATER PIPE NETWORK  - ALL PRECISELY CONNECTED
+// ================================================================
+// PIPE MATERIALS
+var pIn  = new THREE.MeshStandardMaterial({color:0x0e7490,metalness:0.4,roughness:0.5}); // teal - supply
+var pNut = new THREE.MeshStandardMaterial({color:0x1d9e75,metalness:0.35,roughness:0.5}); // green - nutrient
+var pRet = new THREE.MeshStandardMaterial({color:0xba7517,metalness:0.3,roughness:0.5}); // amber - return
+var pAir = new THREE.MeshStandardMaterial({color:0x3a5a7a,metalness:0.2,roughness:0.6}); // dark blue - aeration
+
+// == SEGMENT 1: Fish tank outlet -> Pump ==
+// Tank outlet: right wall (TX+3.5 = -7.0) at Y=TANK_OUT_Y=1.4
+// Pump inlet: PMP_X=-3.8 at Y=PMP_Y=0.32
+tb([
+  [TANK_R, TANK_OUT_Y, TZ],           // tank outlet (right wall side)
+  [TANK_R+0.5, TANK_OUT_Y, TZ],       // stub outside tank
+  [TANK_R+0.5, 0.5, TZ],              // drop to floor level
+  [PMP_X+0.5, 0.5, PMP_Z],           // run along floor toward pump
+  [PMP_X+0.35, PMP_Y, PMP_Z]         // rise into pump inlet
+],0.065,pIn);
+
+// == SEGMENT 2: Pump outlet -> Biofilter inlet (bottom) ==
+// Pump outlet: right side of pump at PMP_X + 0.38
+// Biofilter inlet: BX+0.95=-4.85 (side), BOT Y=0.1
+tb([
+  [PMP_X-0.35, PMP_Y, PMP_Z],        // pump outlet (left side)
+  [BX+0.95, PMP_Y, BZ],              // run to biofilter side
+  [BX+0.95, BIO_BOT_Y+0.5, BZ],     // rise into biofilter base
+  [BX, BIO_BOT_Y+0.5, BZ]            // into biofilter centre
+],0.065,pIn);
+
+// == SEGMENT 3: Biofilter top -> distribute into grow beds ==
+// Biofilter outlet: top at BX=-5.8, BIO_TOP_Y=3.3
+// Route: rise, run along ceiling height inside polyhouse, branch to each bed
+// Entry into polyhouse through left wall at X=PL=-5
+tb([
+  [BX, BIO_TOP_Y, BZ],                // biofilter top
+  [BX, BIO_TOP_Y+0.4, BZ],           // rise above
+  [PL-0.2, BIO_TOP_Y+0.4, BZ],       // run to left wall exterior
+  [PL-0.2, BIO_TOP_Y+0.4, BDA.bz],   // shift to Bed A Z position (outside left wall)
+  [PL+0.15, BIO_TOP_Y+0.4, BDA.bz],  // cross inside polyhouse
+  [PL+0.15, BDA_Y+0.55, BDA.bz],     // drop to Bed A entry level
+  [PL+0.28, BDA_Y+0.38, BDA.bz]      // enter Bed A from left end
+],0.055,pNut);
+// Branch to Bed B
+tb([
+  [PL-0.2, BIO_TOP_Y+0.4, BZ],       // junction (same overhead run)
+  [PL-0.2, BIO_TOP_Y+0.4, BDB.bz],   // shift to Bed B Z
+  [PL+0.15, BIO_TOP_Y+0.4, BDB.bz],  // cross inside
+  [PL+0.15, BDB_Y+0.55, BDB.bz],     // drop to Bed B entry level
+  [PL+0.28, BDB_Y+0.38, BDB.bz]      // enter Bed B from left end
+],0.05,pNut);
+
+// == SEGMENT 4: Grow Bed A outlet -> return to fish tank ==
+// Bed A outlet: right end, PR-0.3=4.7, at BDA_OUT_Y=1.6
+tb([
+  [PR-0.28, BDA_OUT_Y, BDA.bz],       // exit Bed A right end
+  [PR+0.15, BDA_OUT_Y, BDA.bz],       // exit through right wall
+  [RET_X, BDA_OUT_Y, BDA.bz],         // outside right manifold
+  [RET_X, 0.55, BDA.bz],              // drop to floor level
+  [RET_X, 0.45, TZ-0.5],              // corner toward fish tank
+  [TANK_R+0.2, 0.45, TZ-0.5],         // run to tank right wall
+  [TANK_R, 0.45, TZ-0.8]              // connect to tank return inlet
+],0.048,pRet);
+
+// == SEGMENT 5: Grow Bed B outlet -> return to fish tank ==
+tb([
+  [PR-0.28, BDB_OUT_Y, BDB.bz],       // exit Bed B right end
+  [PR+0.15, BDB_OUT_Y, BDB.bz],       // exit through right wall
+  [RET_X+0.12, BDB_OUT_Y, BDB.bz],   // outside right manifold
+  [RET_X+0.12, 0.5, BDB.bz],          // drop to floor
+  [RET_X+0.12, 0.38, TZ+0.5],        // corner toward fish tank
+  [TANK_R+0.2, 0.38, TZ+0.5],         // run to tank
+  [TANK_R, 0.38, TZ+0.8]              // connect to tank inlet
+],0.048,pRet);
+
+// == SEGMENT 6: Aeration air pipe from pump to tank ==
+// Small air pipe from blower to aeration manifold inside tank
+cy(0.04,0.04,0.4,8,pAir,TANK_R+0.8,0.2,TZ,Math.PI/2);
+tb([[TANK_R+0.8,0.25,TZ],[TANK_R+0.1,0.25,TZ],[TANK_R,0.28,TZ]],0.025,pAir);
+
+// ================================================================
+// FLOW PARTICLES  (travel along the pipe paths)
+// ================================================================
+var FPATHS=[
+  // 1. Tank outlet to pump
+  {pts:[[TANK_R,TANK_OUT_Y,TZ],[TANK_R+0.5,0.5,TZ],[PMP_X+0.35,PMP_Y,PMP_Z]],col:0x0e7490,n:7},
+  // 2. Pump to biofilter
+  {pts:[[PMP_X-0.35,PMP_Y,PMP_Z],[BX+0.95,PMP_Y,BZ],[BX,BIO_BOT_Y+0.5,BZ]],col:0x1a8a70,n:6},
+  // 3. Biofilter to Bed A
+  {pts:[[BX,BIO_TOP_Y+0.4,BZ],[PL-0.2,BIO_TOP_Y+0.4,BDA.bz],[PL+0.28,BDA_Y+0.38,BDA.bz]],col:0x34d399,n:7},
+  // 4. Biofilter to Bed B
+  {pts:[[BX,BIO_TOP_Y+0.4,BZ],[PL-0.2,BIO_TOP_Y+0.4,BDB.bz],[PL+0.28,BDB_Y+0.38,BDB.bz]],col:0x34d399,n:6},
+  // 5. Bed A return to tank
+  {pts:[[PR-0.28,BDA_OUT_Y,BDA.bz],[RET_X,0.55,BDA.bz],[TANK_R,0.45,TZ-0.8]],col:0xba7517,n:6},
+  // 6. Bed B return to tank
+  {pts:[[PR-0.28,BDB_OUT_Y,BDB.bz],[RET_X+0.12,0.5,BDB.bz],[TANK_R,0.38,TZ+0.8]],col:0xba7517,n:5},
+];
+var FP=[];
+FPATHS.forEach(function(fp){
+  for(var pi=0;pi<fp.n;pi++){
+    var pm=new THREE.Mesh(new THREE.SphereGeometry(0.065,6,6),new THREE.MeshStandardMaterial({color:fp.col,emissive:fp.col,emissiveIntensity:0.55,transparent:true,opacity:0.85}));
+    pm._pts=fp.pts;pm._t=pi/fp.n;pm._spd=0.0035+Math.random()*.002;scene.add(pm);FP.push(pm);
+  }
+});
+// Per-tank colour particles now in COL_SUPPLY_FP / COL_RETURN_FP arrays
+function lerp3(pts,t){var n=pts.length-1,si=Math.floor(t*n),lo=(t*n)-si,a=Math.min(si,n-1),b=Math.min(si+1,n);return[pts[a][0]+(pts[b][0]-pts[a][0])*lo,pts[a][1]+(pts[b][1]-pts[a][1])*lo,pts[a][2]+(pts[b][2]-pts[a][2])*lo];}
+
+// ================================================================
+// ORBIT CONTROLS
+// ================================================================
+var ORB={theta:0.72,phi:0.78,r:30,tx:0,ty:3,tz:0,drag:false,rdrag:false,lx:0,ly:0};
+function orbCam(){camera.position.set(ORB.tx+ORB.r*Math.sin(ORB.phi)*Math.sin(ORB.theta),ORB.ty+ORB.r*Math.cos(ORB.phi),ORB.tz+ORB.r*Math.sin(ORB.phi)*Math.cos(ORB.theta));camera.lookAt(ORB.tx,ORB.ty,ORB.tz);}
+c3.addEventListener('mousedown',function(e){ORB.drag=true;ORB.rdrag=e.button===2;ORB.lx=e.clientX;ORB.ly=e.clientY;});
+window.addEventListener('mouseup',function(){ORB.drag=false;ORB.rdrag=false;});
+window.addEventListener('mousemove',function(e){if(!ORB||!ORB.drag)return;var dx=(e.clientX-ORB.lx)*.006,dy=(e.clientY-ORB.ly)*.006;ORB.lx=e.clientX;ORB.ly=e.clientY;if(ORB.rdrag){var right=new THREE.Vector3();camera.getWorldDirection(right);right.cross(camera.up).normalize();ORB.tx-=right.x*dx*3;ORB.ty+=dy*3;ORB.tz-=right.z*dx*3;}else{ORB.theta-=dx;ORB.phi=Math.max(0.08,Math.min(Math.PI*.45,ORB.phi+dy));}orbCam();});
+c3.addEventListener('wheel',function(e){ORB.r=Math.max(3,Math.min(65,ORB.r+e.deltaY*.025));orbCam();},{passive:true});
+c3.addEventListener('contextmenu',function(e){e.preventDefault();});
+c3.addEventListener('touchstart',function(e){ORB.lx=e.touches[0].clientX;ORB.ly=e.touches[0].clientY;ORB.drag=true;},{passive:true});
+c3.addEventListener('touchmove',function(e){var dx=(e.touches[0].clientX-ORB.lx)*.009,dy=(e.touches[0].clientY-ORB.ly)*.009;ORB.lx=e.touches[0].clientX;ORB.ly=e.touches[0].clientY;ORB.theta-=dx;ORB.phi=Math.max(0.08,Math.min(Math.PI*.45,ORB.phi+dy));orbCam();},{passive:true});
+orbCam();
+
+function setView(v){if(!ORB)return;
+  if(v==='iso')   {ORB.tx=0;ORB.ty=3;ORB.tz=0;ORB.theta=0.72;ORB.phi=0.78;ORB.r=30;}
+  else if(v==='top')   {ORB.tx=0;ORB.ty=4;ORB.tz=0;ORB.theta=0.01;ORB.phi=0.02;ORB.r=35;}
+  else if(v==='front') {ORB.tx=0;ORB.ty=4;ORB.tz=0;ORB.theta=0;ORB.phi=Math.PI/2-.06;ORB.r=28;}
+  else if(v==='inside'){ORB.tx=0;ORB.ty=PBY+2.5;ORB.tz=0;ORB.theta=0.3;ORB.phi=1.1;ORB.r=11;}
+  else if(v==='tank')  {ORB.tx=TX;ORB.ty=2;ORB.tz=0;ORB.theta=Math.PI;ORB.phi=1.35;ORB.r=6.5;}
+  orbCam();
+}
+
+// LABEL POSITIONS
+var LBLS=[
+  {id:'L-poly',    pos:new THREE.Vector3(0,PT+0.7,0)},
+  {id:'L-tank',    pos:new THREE.Vector3(TX,4.0,TZ)},
+  {id:'L-bio',     pos:new THREE.Vector3(BX,3.7,BZ)},
+  {id:'L-bedA',    pos:new THREE.Vector3(0,BDA_Y+0.8,BDA.bz)},
+  {id:'L-bedB',    pos:new THREE.Vector3(0,BDB_Y+0.8,BDB.bz)},
+  {id:'L-evap',    pos:new THREE.Vector3(PL-.22,PBY+2.2,0)},
+  {id:'L-fan',     pos:new THREE.Vector3(0,PT+0.2,PBK+.25)},
+  {id:'L-iot',     pos:new THREE.Vector3(IOT_X,1.5,IOT_Z)},
+  {id:'L-pump',    pos:new THREE.Vector3(PMP_X,1.0,PMP_Z)},
+  {id:'L-colpump', pos:new THREE.Vector3(COL_PUMP_X,0.7,COL_PUMP_Z)},
+  {id:'L-col',     pos:new THREE.Vector3(0,1.2,PBK+1.0)},
+];
+function updateLabels(){
+  var W=c3.parentElement.clientWidth,H=c3.parentElement.clientHeight;
+  LBLS.forEach(function(lb){var el=document.getElementById(lb.id);if(!el)return;var v=lb.pos.clone().project(camera);if(v.z>1){el.style.opacity='0';return;}el.style.opacity='1';el.style.left=Math.round((v.x+1)/2*W-54)+'px';el.style.top=Math.round((-v.y+1)/2*H-12)+'px';});
+}
+
+// ================================================================
+// PANEL UI
+// ================================================================
+function sSensor(id,val,lo,hi,bid,blo,bhi){
+  var el=document.getElementById(id);if(!el)return;
+  var v=+val;if(isNaN(v))return;
+  var cls='sval';if(v<lo*.88||v>hi*1.12)cls='sval d';else if(v<lo||v>hi)cls='sval w';
+  el.className=cls;el.textContent=v<100?v.toFixed(2):Math.round(v);
+  var bar=document.getElementById(bid);if(!bar)return;
+  var pct=Math.min(100,Math.max(0,(v-blo)/(bhi-blo)*100));
+  bar.style.width=pct+'%';bar.style.background=cls==='sval d'?'#f87171':cls==='sval w'?'#fbbf24':'#60d4fa';
+}
+function drawChart(id,arr,col){
+  var c=document.getElementById(id);if(!c||arr.length<2)return;
+  var ctx=c.getContext('2d'),W=c.width,H=c.height;ctx.clearRect(0,0,W,H);
+  var mn=Math.min.apply(null,arr),mx=Math.max.apply(null,arr),rng=mx-mn||1;
+  ctx.beginPath();arr.forEach(function(v,i){var x=i/(arr.length-1)*W,y=H-(v-mn)/rng*(H-6)-3;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.stroke();
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle='rgba(96,212,250,0.06)';ctx.fill();
+}
+function setEl(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+function updatePanel(){
+  var e=SIM.env,gi=GI(e),fgi=fishGI(e);
+  sSensor('sv-ph',e.ph,6.5,7.5,'sb-ph',5,9);sSensor('sv-tmp',e.tmp,22,30,'sb-tmp',10,45);
+  sSensor('sv-do',e.do_,5.5,8.5,'sb-do',0,12);sSensor('sv-ec',e.ec,0.5,2.0,'sb-ec',0,3);
+  sSensor('sv-nh4',SIM.nit[0],0,0.5,'sb-nh4',0,2);
+  sSensor('sv-air',SIM.airTmp,25,38,'sb-air',15,55);sSensor('sv-hum',65,50,75,'sb-hum',20,100);
+  sSensor('sv-lx',e.lx*(SIM.colorCh===3?.05:1)*20,200,900,'sb-lx',0,1200);
+  if(!isNaN(gi)){setEl('mv-gi',gi.toFixed(3));setEl('mv-days',Math.round(28/Math.max(gi,0.05))+'d');}
+  if(!isNaN(fgi))setEl('mv-fgi',fgi.toFixed(3));
+  // Microgreens stages
+  var stgs=['Germination','Sprouting','Sprouting','Cotyledon','True Leaf','Growing','Growing','Harvest Ready'];
+  setEl('mv-mgst',stgs[Math.min(7,Math.floor(SIM.mgBiomass/4))]);
+  // Per-species stages
+  function spStage(g,K,stages){return stages[Math.min(stages.length-1,Math.floor(g/K*stages.length))];}
+  var basilStg=spStage(SIM.basilG,500,['Seedling','Seedling','Vegetative','Vegetative','Bushy','Mature','Harvest']);
+  var kangStg =spStage(SIM.kangG, 600,['Seedling','Sprouting','Growing','Growing','Vigorous','Harvest']);
+  var okraStg =spStage(SIM.okraG, 400,['Seedling','Seedling','Vegetative','Budding','Flowering','Harvest']);
+  setEl('mv-basil',basilStg);setEl('mv-kang',kangStg);setEl('mv-okra',okraStg);
+  if(!isNaN(SIM.nit[0]))setEl('mv-nh4n',(+SIM.nit[0]).toFixed(3));
+  if(!isNaN(SIM.nit[2]))setEl('mv-no3',(+SIM.nit[2]).toFixed(1));
+  setEl('tair-val',(+SIM.airTmp||0).toFixed(1));setEl('twat-val',(+e.tmp||0).toFixed(1));
+  var bt=document.getElementById('black-tog');if(bt)bt.className='tog'+(SIM.colorCh===3?' on':'');
+  setEl('rows-n',SIM.logRows.length);setEl('file-kb',Math.round((SIM.logRows.length||0)*.08)+' KB');
+  var ld=document.getElementById('logdiv');if(ld)ld.innerHTML=SIM.logRows.slice(-22).map(function(r){return'<div>'+r+'</div>';}).join('');
+  drawChart('tmpchart',SIM.hist.tmp,'#f87171');drawChart('gichart',SIM.hist.gi,'#60d4fa');
+  var h=Math.floor(SIM.t%24),m=Math.floor((SIM.t%1)*60);
+  setEl('daynum',Math.floor(SIM.day));setEl('hhmmss',(h<10?'0':'')+h+':'+(m<10?'0':'')+m);
+  var stm=document.getElementById('stmsg');
+  if(stm)stm.textContent=SIM.run?('Running | GI '+(+gi).toFixed(2)+' | Day '+(+SIM.day).toFixed(1)):'Ready';
+}
+
+// ================================================================
+// 3D SCENE ANIMATION UPDATE
+// ================================================================
+var lastRb=0;
+function update3D(ts){
+  var gi=GI(SIM.env),nh4=SIM.nit[0]||0;
+  var bad=Math.min(1,nh4/1.5)*(1-c01((SIM.env.do_-4)/4));
+  // Water colour
+  waterMesh.material.color.lerpColors(new THREE.Color(0x0c4a6e),new THREE.Color(0x7c2d12),bad*.5);
+  // Polyhouse glow = blend of all active colour pumps
+  var glR=0,glG=0,glB=0,glCnt=0;
+  var glBase=[[0x20,0x60,0xc0],[0x1a,0x60,0x30],[0xD8,0x5A,0x30],[0x11,0x11,0x22],[0x20,0x40,0x40]];
+  if(SIM.colPumps){SIM.colPumps.forEach(function(on,i){if(on){glR+=glBase[i][0];glG+=glBase[i][1];glB+=glBase[i][2];glCnt++;}});}
+  if(glCnt>0){polyGlow.color.setRGB(glR/glCnt/255,glG/glCnt/255,glB/glCnt/255);}
+  var blackOn=SIM.colPumps&&SIM.colPumps[3];
+  polyGlow.intensity=blackOn?.12:1.4+.4*Math.sin(ts*.002);
+  // Active colour pipe glows - each pipe glows when its pump is ON
+  CPIPES.forEach(function(cp,i){
+    if(!cp||!cp.material)return;
+    var on=SIM.colPumps?SIM.colPumps[i]:true;
+    cp.material.color.set(on?CPIPE_COLORS_ARR[i]:0x1a1a2a);
+    cp.material.emissiveIntensity=on&&i!==3?.38:0;
+  });
+  // LED strips change colour
+  var firstActive=SIM.colPumps?SIM.colPumps.indexOf(true):2;
+  LEDSTRIPS.forEach(function(ls){
+    ls.material.emissive=new THREE.Color(SIM.ledOn&&!SIM.env.blackCh?ledCols[Math.max(0,firstActive)]:0x111111);
+    ls.material.emissiveIntensity=SIM.ledOn&&!SIM.env.blackCh?1.8:.12;
+  });
+  ledPts.forEach(function(lp,i){
+    lp.color.set(SIM.ledOn&&!SIM.env.blackCh?ledCols[Math.max(0,firstActive)]:0x111111);
+    lp.intensity=(SIM.ledOn&&!SIM.env.blackCh?.8:.04)*(0.4+.3*Math.sin(ts*.002+i));
+  });
+  // Colour water particles in front wall channels
+  // Per-tank colour circuit particles
+  if(COL_SUP_PARTICLES&&COL_SUP_PARTICLES.length){
+    for(var cti=0;cti<5;cti++){
+      var pon=SIM.colPumps?SIM.colPumps[cti]:true;
+      if(COL_SUP_PARTICLES[cti]){COL_SUP_PARTICLES[cti].forEach(function(pm){
+        if(!pon||!SIM.pumpOn){pm.visible=false;return;}
+        pm.visible=true;pm._t=(pm._t+pm._spd)%1;
+        var pp=lerp3(pm._pts,pm._t);if(pp)pm.position.set(pp[0],pp[1],pp[2]);
+      });}
+      if(COL_RET_PARTICLES[cti]){COL_RET_PARTICLES[cti].forEach(function(rm){
+        if(!pon||!SIM.pumpOn){rm.visible=false;return;}
+        rm.visible=true;rm._t=(rm._t+rm._spd)%1;
+        var pp=lerp3(rm._pts,rm._t);if(pp)rm.position.set(pp[0],pp[1],pp[2]);
+      });}
+    }
+  }
+  // Fish swim
+  FISH.forEach(function(f){
+    var t2=ts*.001*f._spd;
+    f.position.x=TX+f._rad*Math.cos(t2+f._off);
+    f.position.z=TZ+f._rad*.52*Math.sin(t2*1.2+f._off);
+    f.position.y=0.75+.3*Math.sin(t2*.7+f._off);
+    f.rotation.y=-(t2)+Math.PI/2;
+    f.visible=SIM.pumpOn||(Math.sin(t2)>0);
+  });
+  // Bubbles
+  for(var bi=0;bi<NB;bi++){bpa[bi*3+1]+=bva[bi]*(SIM.pumpOn?1:.04);if(bpa[bi*3+1]>2.95){bpa[bi*3]=TX+(-3+Math.random()*6);bpa[bi*3+1]=0.25;bpa[bi*3+2]=TZ+(-2.8+Math.random()*5.6);}}
+  bubG.attributes.position.needsUpdate=true;bubPts.material.opacity=SIM.pumpOn?.6:.08;
+  // Flow particles
+  FP.forEach(function(fp){if(!SIM.pumpOn){fp.visible=false;return;}fp.visible=true;fp._t=(fp._t+fp._spd)%1;var p2=lerp3(fp._pts,fp._t);fp.position.set(p2[0],p2[1],p2[2]);});
+  // Plants grow - per-species height from species growth state
+  if(SIM.run&&ts-lastRb>600){lastRb=ts;
+    GBPLANTS.forEach(function(p,i){
+      var rawG= p.type===0?SIM.basilG:(p.type===1?SIM.kangG:SIM.okraG);
+      var K=[500,600,400][p.type||0];
+      var nh=Math.min(1,rawG/K*8); // height fraction
+      var h=nh*(0.45+0.55*Math.abs(Math.sin(p.g._ph+i*0.55)));
+      var pgi=p.type===0?bgi:(p.type===1?kgi:ogi);
+      if(Math.abs(h-p.h)>0.015){p.h=h;buildPl(p,h,pgi);}
+    });
+  }
+  var bgi2=plantGI(SIM.env,PLANT_TYPES[0]),kgi2=plantGI(SIM.env,PLANT_TYPES[1]),ogi2=plantGI(SIM.env,PLANT_TYPES[2]);
+  var bgi=bgi2,kgi=kgi2,ogi=ogi2; // make available in scope above
+  // Microgreens
+  var mgF=Math.min(1,SIM.mgBiomass/16);
+  MPLANTS.forEach(function(mp){mp.scale.setScalar(.45+mgF*2.8);mp.position.y=mp._by+mgF*.22;mp.material.color.setHSL(.34-.04*(1-mgF),.82,.44+mgF*.22);mp.material.emissiveIntensity=.15+mgF*.35;});
+  // Fan
+  if(SIM.fanOn)fanGrp.rotation.z+=.14;
+  // Bio glow
+  bioGlow.intensity=.3+.55*gi;bioGlow.color.setHSL(.38-bad*.08,.9,.55);
+  // WiFi rings
+  WIFI.forEach(function(wr){wr.scale.setScalar(.5+.55*((Math.sin(ts*.0025+wr._ph)+1)/2));wr.material.opacity=.35-WIFI.indexOf(wr)*.07;});
+  // Pump impeller
+  if(pmG.children[1])pmG.children[1].rotation.z+=SIM.pumpOn?.1:.002;
+}
+
+// ================================================================
+// CONTROLS
+// ================================================================
+function toggleColPump(ch){
+  if(!SIM.colPumps)SIM.colPumps=[true,true,true,false,true];
+  SIM.colPumps[ch]=!SIM.colPumps[ch];
+  var t=document.getElementById('cp-tog-'+ch);
+  if(t)t.className='tog'+(SIM.colPumps[ch]?' on':'');
+  // If turning on black, treat as cooling mode
+  if(ch===3&&SIM.colPumps[ch])SIM.env.blackCh=true;
+  else if(ch===3&&!SIM.colPumps[ch])SIM.env.blackCh=false;
+  updateActiveChannels();
+}
+function updateActiveChannels(){
+  var el=document.getElementById('active-channels');if(!el)return;
+  var names=['Blue','Green','Red','Black','Clear'];
+  var cols=['#60a5fa','#4ade80','#f87171','#aaa','#a0d0c0'];
+  var active=[];
+  if(SIM.colPumps){SIM.colPumps.forEach(function(on,i){if(on)active.push('<span style="color:'+cols[i]+'">'+names[i]+'</span>');});}
+  el.innerHTML=active.length?active.join(' + '):'<span style="color:#f87171">All OFF</span>';
+  // Lighting effect: blend colours of all active channels
+  var blackOn=SIM.colPumps&&SIM.colPumps[3];
+  SIM.env.blackCh=blackOn;
+}
+function setCol(i){
+  SIM.colorCh=i;
+  [0,1,2,3,4].forEach(function(j){var b=document.getElementById('cb'+j);if(b)b.className='colbtn'+(j===i?' on':'');});
+  var cn=document.getElementById('col-name'),ce=document.getElementById('col-effect');
+  if(cn){cn.textContent=CNAMES[i];cn.style.color=['#60a5fa','#4ade80','#f87171','#aaa','#a0d0c0'][i];}
+  if(ce)ce.textContent=CEFFECTS[i];
+  var bt=document.getElementById('black-tog');if(bt)bt.className='tog'+(i===3?' on':'');
+}
+function togglePump(){SIM.pumpOn=!SIM.pumpOn;var t=document.getElementById('pump-tog');if(t)t.className='tog'+(SIM.pumpOn?' on':'');var lbl=document.getElementById('L-pump');if(lbl)lbl.style.color=SIM.pumpOn?'#60d4fa':'#f87171';}
+function toggleFan(){SIM.fanOn=!SIM.fanOn;var t=document.getElementById('fan-tog');if(t)t.className='tog'+(SIM.fanOn?' on':'');}
+function toggleEvap(){SIM.evapOn=!SIM.evapOn;var t=document.getElementById('evap-tog');if(t)t.className='tog'+(SIM.evapOn?' on':'');}
+function toggleLED(){SIM.ledOn=!SIM.ledOn;var t=document.getElementById('led-tog');if(t)t.className='tog'+(SIM.ledOn?' on':'');}
+function resetSim(){SIM.t=0;SIM.day=0;SIM.nit=[.3,.05,40];SIM.plant=10;SIM.mgBiomass=0.5;SIM.basilG=8;SIM.kangG=8;SIM.okraG=5;SIM.pumpOn=true;SIM.colPumps=[true,true,true,false,true];Object.keys(SIM.hist).forEach(function(k){SIM.hist[k]=[];});SIM.logRows=[];var pt=document.getElementById('pump-tog');if(pt)pt.className='tog on';[0,1,2,3,4].forEach(function(i){var t=document.getElementById('cp-tog-'+i);if(t)t.className='tog'+(SIM.colPumps[i]?' on':'');});updateActiveChannels();GBPLANTS.forEach(function(p){p.h=0.08;buildPl(p,0.08,0.9);});}
+function togglePlay(){SIM.run=!SIM.run;var b=document.getElementById('play-btn');if(b){b.textContent=SIM.run?'|| Pause':'> Start';b.className=SIM.run?'btn stop':'btn pri';}}
+function loadSC(i){var sc=SCENARIOS[i];SIM.env.tmp=sc.tmp;SIM.env.ph=sc.ph;SIM.env.ec=sc.ec;SIM.env.do_=sc.do_;SIM.env.lx=sc.lx;SIM.env.co2=sc.co2;SIM.env.nh4=sc.nh4;setCol(sc.col);SIM.fanOn=sc.fan;SIM.evapOn=sc.evap;SIM.ledOn=sc.led;var ft=document.getElementById('fan-tog');if(ft)ft.className='tog'+(SIM.fanOn?' on':'');var et=document.getElementById('evap-tog');if(et)et.className='tog'+(SIM.evapOn?' on':'');}
+function ST(name,btn){document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on');});document.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('on');});var pane=document.getElementById('pane-'+name);if(pane)pane.classList.add('on');if(btn)btn.classList.add('on');}
+
+// MAIN LOOP
+var lastUI=0;
+function animate(ts){requestAnimationFrame(animate);simTick();update3D(ts);renderer.render(scene,camera);updateLabels();if(ts-lastUI>130){updatePanel();lastUI=ts;}}
+resz();setCol(0);if(typeof updateActiveChannels==='function')updateActiveChannels();updatePanel();animate(0);
+</script>
+</body>
+</html>
