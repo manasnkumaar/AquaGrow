@@ -64,14 +64,15 @@ aquagrow/
 cp .env.example .env
 docker compose up --build
 # Wait for "AquaGrow backend listening on :4000"
-# Then in another shell, seed the demo data:
-docker compose exec backend node -e "require('child_process').execSync('node -r ts-node/register src/db/seed.ts', {stdio:'inherit'})" 2>/dev/null \
-  || docker compose exec backend npx tsx /app/dist/db/seed.js  # auto-fallback
+
+# Then in another shell, seed the demo data
+# (4 devices + 14 days of history + LED + alerts + GI):
+docker compose exec backend node dist/db/seed.js
 ```
 
-> Note: the container automatically applies `schema.sql` on first start. To seed demo data
-> (4 devices + 14 days of history + sample alerts), run `npm run seed` against the running DB
-> (see below) or use the dev workflow.
+> The backend container automatically applies `schema.sql` on first start.
+> Re-running the seed is safe — users / devices use `ON CONFLICT DO NOTHING`,
+> sensor history and alerts will accumulate.
 
 Open <http://localhost:3000>. Demo credentials:
 
