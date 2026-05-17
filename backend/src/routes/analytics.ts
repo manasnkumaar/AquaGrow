@@ -1,0 +1,122 @@
+import { Router } from "express";
+import PDFDocument from "pdfkit";
+import { pool } from "../db/pool";
+import { requireAuth } from "../middleware/auth";
+
+const router = Router();
+router.use(requireAuth);
+
+router.get("/growth-index", async (_req, res, next) => {
+  try {
+    const r = await pool.query(`
+      SELECT g.device_id, d.name AS device_name, g.recorded_on, g.gi_value
+      FROM growth_index g JOIN devices d ON d.id = g.device_id
+      ORDER BY g.recorded_on ASC, d.name ASC
+    `);
+    res.json({ rows: r.rows });
+  } catch (e) { next(e); }
+});
+
+router.get("/trends", async (req, res, next) => {
+  try {
+    const days = Math.min(60, Math.max(1, Number(req.query.days ?? 14)));
+    const r = await pool.query(`
+      SELECT d.id AS device_id, d.name AS device_name,
+             date_trunc('day', sr.recorded_at)::date AS day,
+             AVG(sr.temperature)::numeric(6,2) AS temperature,
+             AVG(sr.humidity)::numeric(6,2)    AS humidity,
+             AVG(sr.water_level)::numeric(6,2) AS water_level,
+             AVG(sr.ph)::numeric(5,2)          AS ph,
+             AVG(sr.light_intensity)::numeric(8,2) AS light_intensity
+      FROM sensor_readings sr JOIN devices d ON d.id = sr.device_id
+      WHERE sr.recorded_at >= NOW() - ($1 || ' days')::interval
+      GROUP BY 1,2,3 ORDER BY 3 ASC, 2 ASC
+    `, [days]);
+    res.json({ rows: r.rows });
+  } catch (e) { next(e); }
+});
+
+function toCsv(rows: Record<string, unknown>[]): string {
+  if (!rows.length) return "";
+  const headers = Object.keys(rows[0]);
+  const escape = (v: unknown) => {
+    if (v === null || v === undefined) return "";
+    const s = String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return [headers.join(","), ...rows.map(r => headers.map(h => escape(r[h])).join(","))].join("\n");
+}
+
+router.get("/export.csv", async (req, res, next) => {
+  try {
+    const days = Math.min(90, Math.max(1, Number(req.query.days ?? 14)));
+    const r = await pool.query(`
+      SELECT sr.recorded_at, d.name AS device_name,
+             sr.temperature, sr.humidity, sr.water_level, sr.ph, sr.light_intensity
+      FROM sensor_readings sr JOIN devices d ON d.id = sr.device_id
+      WHERE sr.recorded_at >= NOW() - ($1 || ' days')::interval
+      ORDER BY sr.recorded_at ASC
+    `, [days]);
+    const csv = toCsv(r.rows);
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="aquagrow_sensor_${days}d.csv"`);
+    res.send(csv);
+  } catch (e) { next(e); }
+});
+
+router.get("/export.pdf", async (req, res, next) => {
+  try {
+    const days = Math.min(90, Math.max(1, Number(req.query.days ?? 14)));
+    const trends = await pool.query(`
+      SELECT d.name AS device_name,
+             AVG(sr.temperature)::numeric(6,2) AS temperature,
+             AVG(sr.humidity)::numeric(6,2) AS humidity,
+             AVG(sr.water_level)::numeric(6,2) AS water_level,
+             AVG(sr.ph)::numeric(5,2) AS ph,
+             AVG(sr.light_intensity)::numeric(8,2) AS light_intensity,
+             COUNT(*) AS samples
+      FROM sensor_readings sr JOIN devices d ON d.id = sr.device_id
+      WHERE sr.recorded_at >= NOW() - ($1 || ' days')::interval
+      GROUP BY d.name ORDER BY d.name
+    `, [days]);
+    const gi = await pool.query(`
+      SELECT d.name AS device_name, AVG(g.gi_value)::numeric(6,3) AS gi
+      FROM growth_index g JOIN devices d ON d.id = g.device_id
+      GROUP BY d.name ORDER BY d.name
+    `);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="aquagrow_report_${days}d.pdf"`);
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    doc.pipe(res);
+
+    doc.fontSize(20).text("AquaGrow Smart Farming - Analytics Report", { align: "center" });
+    doc.moveDown(0.3).fontSize(10).fillColor("#555")
+       .text(`Window: last ${days} days  •  Generated: ${new Date().toISOString()}`, { align: "center" });
+    doc.moveDown(1).fillColor("#000");
+
+    doc.fontSize(14).text("Per-device sensor averages", { underline: true });
+    doc.moveDown(0.5).fontSize(10);
+    doc.text("Device           Temp  Hum   Water  pH    Light   Samples");
+    doc.text("--------------------------------------------------------------");
+    for (const row of trends.rows) {
+      const line = `${(row.device_name ?? "").toString().padEnd(16).slice(0,16)} ${
+        String(row.temperature).padStart(5)} ${String(row.humidity).padStart(5)} ${
+        String(row.water_level).padStart(6)} ${String(row.ph).padStart(4)} ${
+        String(row.light_intensity).padStart(7)} ${String(row.samples).padStart(7)}`;
+      doc.text(line);
+    }
+
+    doc.moveDown(1).fontSize(14).text("Growth Index (mean)", { underline: true });
+    doc.moveDown(0.5).fontSize(10);
+    for (const row of gi.rows) {
+      doc.text(`${(row.device_name ?? "").toString().padEnd(20).slice(0,20)} GI = ${row.gi}`);
+    }
+
+    doc.moveDown(2).fontSize(8).fillColor("#888")
+       .text("Generated by AquaGrow • Open-source smart farming dashboard", { align: "center" });
+    doc.end();
+  } catch (e) { next(e); }
+});
+
+export default router;
